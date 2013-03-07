@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+
+        <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+
+        <link rel="stylesheet" href="css/bootstrap.css">
+        <link rel="stylesheet" href="css/econ.css">
+    </head>
+    <body ng-app="econ">
+		
+		<div class="economy container-fluid">
+		<h1>Production Interests</h1>
+			<div class="row-fluid">
+				<div class="span4">		
+					<producer class="onTick" ng-repeat="item in economy.producers"></producer>
+				</div>
+				<div class="span4">				
+					<business class="onTick" ng-repeat="item in economy.businesses"></business>
+				</div>
+				<div class="span4">
+					<individual class="onTick" ng-repeat="item in economy.individuals"></individual>
+				</div>
+			</div>
+			<h1>Product Surplus</h1>
+			<div class="row-fluid">
+				<div class="span3">		
+					<labor ng-repeat="item in economy.labor"></labor>
+				</div>
+				<div class="span3">				
+					<commodity ng-repeat="item in economy.commodity"></commodity>
+				</div>
+				<div class="span3">
+					<equipment ng-repeat="item in economy.equipment"></equipment>
+				</div>
+				<div class="span3">
+					<consumer ng-repeat="item in economy.consumer"></consumer>
+				</div>
+			</div>
+		</div>		
+
+		
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/jquery-ui.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script>
+        <script src="js/econ.js"></script>
+
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+        <script>
+            var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
+            (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+            g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+            s.parentNode.insertBefore(g,s)}(document,'script'));
+        </script>
+    </body>
+</html>
