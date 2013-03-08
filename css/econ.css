@@ -1,16 +1,22 @@
+body{
+
+}
+
 .btn{
-	min-width: 70px;
+	min-width: 58px;
 	margin: 2px;
+	font-family:Helvetica;
+	letter-spacing:0;
 }
 
-h1{
-font-size: 30px;
-font-family: Georgia;
-letter-spacing: -1px;
+.inProd{
+	background: lime;
 }
 
-h2{
-font-size: 30px;
-font-family: Georgia;
-letter-spacing: -1px;
+.inWant{
+	background: pink;
+}
+
+.span3{
+	text-align:center;
 }

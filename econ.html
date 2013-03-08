@@ -18,23 +18,55 @@
     <body ng-app="econ">
 		
 		<div class="economy container-fluid">
-		<h1>Production Interests</h1>
-			<div class="row-fluid">
-				<div class="span4">		
-					<producer class="onTick" ng-repeat="item in economy.producers"></producer>
+		<h1>The Market
+			<div class="btn btn-success" ng-click="generateActors()">Reset</div>
+		</h1>
+			<h2>Sectors:</h2>
+			<div class="row-fluid bars">
+				<div class="span3 bars">
+					<localprod data-type="producer" class="onTick" ng-class="[prodClass,wantClass].join(' ')" ng-repeat="item in economy.producers"></localprod>
 				</div>
-				<div class="span4">				
-					<business class="onTick" ng-repeat="item in economy.businesses"></business>
+				<div class="span3 bars">				
+					<localprod data-type="industry" class="onTick" ng-class="[prodClass,wantClass].join(' ')" ng-repeat="item in economy.industries"></localprod>
 				</div>
-				<div class="span4">
-					<individual class="onTick" ng-repeat="item in economy.individuals"></individual>
+				<div class="span3 bars">				
+					<localprod data-type="market" class="onTick" ng-class="[prodClass,wantClass].join(' ')" ng-repeat="item in economy.markets"></localprod>
+				</div>
+				<div class="span3 bars">
+					<localprod data-type="individual" class="onTick" ng-class="[prodClass,wantClass].join(' ')" ng-repeat="item in economy.individuals"></localprod>
 				</div>
 			</div>
-			<h1>Product Surplus</h1>
 			<div class="row-fluid">
-				<div class="span3">		
-					<labor ng-repeat="item in economy.labor"></labor>
+				<div class="span3">				
+					<h3>Industry <i class="icon-th"></i></h3>
 				</div>
+				<div class="span3">
+					<h3>Manufacturing <i class="icon-briefcase"></i></h3>				
+				</div>
+				<div class="span3">
+					<h3>Retail <i class="icon-tag"></i></h3>
+				</div>
+				<div class="span3">		
+					<h3>Housing <i class="icon-home"></i></h3>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span3">				
+					<p><i class="icon-time"></i> + <i class="icon-wrench"></i> = 2<i class="icon-tint"></i></p>
+				</div>
+				<div class="span3">
+					<p><i class="icon-time"></i> + <i class="icon-tint"></i> = <i class="icon-wrench"></i> & <i class="icon-shopping-cart"></i></p>
+				</div>
+				<div class="span3">
+					<p><i class="icon-time"></i> + <i class="icon-tint"></i> = 2<i class="icon-shopping-cart"></i></p>
+				</div>
+				<div class="span3">		
+					<p><i class="icon-shopping-cart"></i> = <i class="icon-time"></i></p>
+				</div>
+			</div>
+			<hr/>
+			<h2>Surplus</h2>
+			<div class="row-fluid">
 				<div class="span3">				
 					<commodity ng-repeat="item in economy.commodity"></commodity>
 				</div>
@@ -43,6 +75,9 @@
 				</div>
 				<div class="span3">
 					<consumer ng-repeat="item in economy.consumer"></consumer>
+				</div>
+				<div class="span3">		
+					<labor ng-repeat="item in economy.labor"></labor>
 				</div>
 			</div>
 		</div>		
