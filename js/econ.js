@@ -1,4 +1,5 @@
 var $cycleLength = 10,
+$expansion = 0.5,
 $powerStep = 0.1,
 $attract ={
 	individual: 0.5 ,
@@ -73,7 +74,7 @@ $provide.factory('economy', function factory($rootScope){
 			transfer.production = production;
 			transfer.rest = $cycleLength;
 			transfer.currentRest = 0;
-			transfer.purchasePower = Math.random();
+			transfer.purchasePower = Math.random()/10;
 			transfer.supplied = false;
 			transfer.economy = this;
 			
@@ -83,9 +84,10 @@ $provide.factory('economy', function factory($rootScope){
 					this.economy.removeProduction(this);
 				}
 				
-				if(this.purchasePower > 1){
+				if(this.purchasePower > $expansion){
 					if(Math.random() < $attract[this.type]){
-						this.purchasePower = 0.5
+						this.purchasePower = $expansion / 2;
+						this.currentRest = 0;
 						this.economy.addProduction(this.type, this.needs, this.production);
 					}
 						return true;
@@ -237,6 +239,7 @@ $provide.factory('economy', function factory($rootScope){
 		restrict: 'C',
 		scope: true,
 		link: function($scope, $element){
+			$scope.worldclock = worldclock;
 			$scope.economy = angular.copy(economy);
 			$scope.individuals = 3;
 			$scope.industry = 1;
@@ -248,6 +251,17 @@ $provide.factory('economy', function factory($rootScope){
 					$.each([].concat($scope.economy.individuals, $scope.economy.industries, $scope.economy.markets, $scope.economy.producers), function(i,v){
 							v.onTick();
 					});
+					
+					function sorter(a, b){
+						return b.purchasePower - a.purchasePower;
+					
+					}
+					
+					$scope.economy.individuals.sort(sorter);
+					$scope.economy.industries.sort(sorter);
+					$scope.economy.markets.sort(sorter);
+					$scope.economy.producers.sort(sorter);
+					
 					$scope.$apply();
 
 			});
@@ -296,7 +310,7 @@ $compileProvider.directive('localprod', ['worldclock', function(worldclock){
 			restrict: 'E',
 			replace: true,
 			scope: true,
-			template: ['<div class="btn btn-mini"><i ng-class="icon"></i> {{ getrest() }} %','</div>'].join(''),
+			template: ['<div class="btn btn-mini"><i ng-class="icon"></i> {{ getrest() }}','</div>'].join(''),
 			controller: function($scope, $element){
 				$scope.icon = icons[$element.attr('data-type')];
 				$scope.prodClass = '';
@@ -307,8 +321,14 @@ $compileProvider.directive('localprod', ['worldclock', function(worldclock){
 			
 				$scope.getrest = function(){
 
-					var item = $scope.item;
-					var rest = (((item.currentRest) / item.rest) * 100).toFixed(0);
+					var item = $scope.item, rest;
+					
+					if(item.purchasePower > $expansion * 0.75){ 
+						rest = 'X';
+					}else{
+						rest = (((item.rest - item.currentRest) / item.rest) * 10).toFixed('0');
+						if(rest === '10') rest = 0;
+					}
 					item.inWant? $scope.wantClass = 'inWant' : $scope.wantClass = '';
 					item.inProd? $scope.prodClass = 'inProd' : $scope.prodClass = '';
 					
@@ -362,8 +382,6 @@ $compileProvider.directive('consumer', function(){
 
 
 }).run(function(worldclock){
-
-	worldclock.start();
 
 
 });

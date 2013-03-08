@@ -1,9 +1,11 @@
+@font-face {font-family:"Pies";src:url("pie4map.eot?") format("eot"),url("pie4map.woff") format("woff"),url("pie4map.ttf") format("truetype"),url("pie4map.svg#") format("svg");font-weight:normal;font-style:normal;}
+
+
 body{
 
 }
 
 .btn{
-	min-width: 58px;
 	margin: 2px;
 	font-family:Helvetica;
 	letter-spacing:0;
@@ -19,4 +21,10 @@ body{
 
 .span3{
 	text-align:center;
+}
+
+.pie{
+	font-family: "Pies";
+	font-size: 17px;
+	color: rgb(95, 95, 95);
 }
