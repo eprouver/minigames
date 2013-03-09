@@ -14,6 +14,7 @@ var econ = angular.module('econ', ['ng']).config(function($provide, $compileProv
 $provide.factory('economy', function factory($rootScope){
 
 	return {
+		//In a closed economy production releases goods back into the economy when it leaves
 		individuals: [],
 		industries: [],
 		markets: [],
@@ -23,10 +24,10 @@ $provide.factory('economy', function factory($rootScope){
 		equipment: [],
 		consumer: [],
 		needs: {
-			labor: [],
-			commodity: [],
-			equipment: [],
-			consumer: [],
+			labor: [0],
+			commodity: [0],
+			equipment: [0],
+			consumer: [0]
 		},
 		addProducts: function(type, index){
 		
@@ -64,7 +65,16 @@ $provide.factory('economy', function factory($rootScope){
 			break;
 			}
 			
-			arr.splice(arr.indexOf(this), 1);
+			arr.splice(arr.indexOf(prod), 1);
+			
+			if(Math.random() > $attract[prod.type]){
+				for(var i = 0; i < prod.production.length; i++){
+						this[prod.production[i].type][prod.production[i].index] --;
+				}
+				for(var i = 0; i < prod.needs.length; i++){
+						this[prod.needs[i].type][prod.needs[i].index] ++;
+				}
+			}
 			
 		},
 		addProduction: function(type, needs, production){
@@ -74,7 +84,7 @@ $provide.factory('economy', function factory($rootScope){
 			transfer.production = production;
 			transfer.rest = $cycleLength;
 			transfer.currentRest = 0;
-			transfer.purchasePower = Math.random()/10;
+			transfer.purchasePower = Math.random()/10 + 0.1;
 			transfer.supplied = false;
 			transfer.economy = this;
 			
@@ -104,7 +114,7 @@ $provide.factory('economy', function factory($rootScope){
 						this.inProd = true;
 						this.produce();
 						this.currentRest = 0;
-						this.purchasePower += $powerStep * 1.1;
+						this.purchasePower += $powerStep * 1.1;						
 						return true;
 					}else{
 						this.inWant = true;
@@ -122,8 +132,10 @@ $provide.factory('economy', function factory($rootScope){
 				function needavailable(v, economy, type){
 				
 					if(economy[v.type][v.index] > 0){
+						economy.needs[v.type][v.index] = Math.max((economy.needs[v.type][v.index] || 0) - 1, 0);
 						return true;
 					}else{
+						economy.needs[v.type][v.index] = (economy.needs[v.type][v.index] || 0) + 1;
 						console.log(v.type, 'needed by', type);
 						return false;
 					}
@@ -201,7 +213,7 @@ $provide.factory('economy', function factory($rootScope){
 	$provide.factory('worldclock', function($rootScope){
 	
 		return {
-			time: 10,
+			time: 200,
 			tick: function(){
 				try{
 					$rootScope.$broadcast('clocktick');
@@ -223,6 +235,12 @@ $provide.factory('economy', function factory($rootScope){
 					delete this.interval;
 				}
 			},
+			change: function(){
+				if(this.interval){
+					clearInterval(this.interval);
+					this.interval = setInterval(this.tick, this.time);
+				}			
+			},
 			start: function(){
 				if(this.interval){
 					clearInterval(this.interval);
@@ -241,16 +259,18 @@ $provide.factory('economy', function factory($rootScope){
 		link: function($scope, $element){
 			$scope.worldclock = worldclock;
 			$scope.economy = angular.copy(economy);
-			$scope.individuals = 3;
+			$scope.individuals = 1;
 			$scope.industry = 1;
 			$scope.market = 1;
 			$scope.produce = 1;
 			
 			$scope.$on('clocktick', function(){
 				
-					$.each([].concat($scope.economy.individuals, $scope.economy.industries, $scope.economy.markets, $scope.economy.producers), function(i,v){
-							v.onTick();
-					});
+					var whole = [].concat($scope.economy.individuals, $scope.economy.industries, $scope.economy.markets, $scope.economy.producers)
+					for(var i = 0; i < whole.length; i++){
+						whole[i].onTick();
+					}
+				
 					
 					function sorter(a, b){
 						return b.purchasePower - a.purchasePower;
@@ -267,14 +287,20 @@ $provide.factory('economy', function factory($rootScope){
 			});
 			
 			$scope.generateActors = function(){
-				$scope.economy.labor = [10],
-				$scope.economy.commodity = [10],
-				$scope.economy.equipment = [10],
-				$scope.economy.consumer = [10],
-				$scope.economy.individuals = [],
-				$scope.economy.industries = [],
-				$scope.economy.markets = [],
+				$scope.economy.labor = [5];
+				$scope.economy.commodity = [5];
+				$scope.economy.equipment = [5];
+				$scope.economy.consumer = [5];
+				$scope.economy.individuals = [];
+				$scope.economy.industries = [];
+				$scope.economy.markets = [];
 				$scope.economy.producers = [];
+				$scope.economy.needs = {
+					labor: [0],
+					commodity: [0],
+					equipment: [0],
+					consumer: [0]
+				};
 			
 				var i = 0;
 				for(i = 0; i < $scope.individuals; i++){
@@ -310,14 +336,10 @@ $compileProvider.directive('localprod', ['worldclock', function(worldclock){
 			restrict: 'E',
 			replace: true,
 			scope: true,
-			template: ['<div class="btn btn-mini"><i ng-class="icon"></i> {{ getrest() }}','</div>'].join(''),
+			template: ['<div class="btn btn-mini" ng-click="worldclock.toggle()"><i ng-class="icon"></i> {{ getrest() }}','</div>'].join(''),
 			controller: function($scope, $element){
 				$scope.icon = icons[$element.attr('data-type')];
 				$scope.prodClass = '';
-		
-				$element.on('click', function(){
-					worldclock.toggle();
-				});
 			
 				$scope.getrest = function(){
 
@@ -339,46 +361,25 @@ $compileProvider.directive('localprod', ['worldclock', function(worldclock){
 	}
 }]);
 
+$compileProvider.directive('good', function(){
+	var icons = {
+		labor: "icon-time",
+		commodity: "icon-tint",
+		equipment: "icon-wrench",
+		consumer: "icon-shopping-cart"
+	}
 
-$compileProvider.directive('labor', function(){
 	return{
 			restrict: 'E',
 			replace: true,
-			template: '<div class="btn"><i class="icon-time"></i> {{item}}</div>',
+			template: '<div class="btn"><i ng-class="icon"></i> {{item}}</div>',
 			controller: function($scope, $element){
+				$scope.icon = icons[$element.attr('data-type')];
 			}
 	}
 });
 
-$compileProvider.directive('commodity', function(){
-	return{
-			restrict: 'E',
-			replace: true,
-			template: '<div class="btn"><i class="icon-tint"></i> {{item}}</div>',
-			controller: function($scope, $element){
-			}
-	}
-});
 
-$compileProvider.directive('equipment', function(){
-	return{
-			restrict: 'E',
-			replace: true,
-			template: '<div class="btn"><i class="icon-wrench"></i> {{item}}</div>',
-			controller: function($scope, $element){
-			}
-	}
-});
-
-$compileProvider.directive('consumer', function(){
-	return{
-			restrict: 'E',
-			replace: true,
-			template: '<div class="btn"><i class="icon-shopping-cart"></i> {{item}}</div>',
-			controller: function($scope, $element){
-			}
-	}
-});
 
 
 }).run(function(worldclock){
