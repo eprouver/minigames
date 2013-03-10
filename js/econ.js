@@ -6,43 +6,156 @@ $attract ={
 	market: 0.5,
 	producer: 0.5,
 	industry: 0.5
-}
+},
+$templatePath = 'js/econ/temp/';
+
 
 
 var econ = angular.module('econ', ['ng']).config(function($provide, $compileProvider){
 
 $provide.factory('economy', function factory($rootScope){
 
+	var $econtick;
+
+	if(typeof(Worker)!=="undefined"){
+
+		$econtick = new Worker('js/econ/econtick.js');
+		$econtick.onmessage = function(e){
+			console.log(e);
+		};
+	}
+	else{
+	  
+	}
+
 	return {
 		//In a closed economy production releases goods back into the economy when it leaves
+		closed: false,
+		size: 0,
+		inWant: 0,
+		data: {
+			health: []
+		},
+		worker: $econtick,
+		runtick: function(){
+				var $this = this;
+					
+				function process(){
+					var whole = [].concat($this.individuals, $this.industries, $this.markets, $this.producers);
+					$this.size = whole.length;
+					$this.inWant = 0;
+					for(var i = 0; i < whole.length; i++){
+						whole[i].onTick();
+						if(whole[i].inWant){
+							$this.inWant++;
+						}
+					}
+
+					function sorter(a, b){
+						return b.purchasePower - a.purchasePower;
+					};
+					
+					$this.individuals.sort(sorter);
+					$this.industries.sort(sorter);
+					$this.markets.sort(sorter);
+					$this.producers.sort(sorter); 
+				}
+
+				if(typeof(Worker)!=="undefined"){	
+					process();
+					return;
+					
+					var copy = {}
+					function remover(arr){
+						$.map(arr, function(v){
+							if(v.remove){
+								$this.removeProduction(v);
+								return;
+							}
+							
+							if(v.divide){
+								$this.addProduction(v.type, v.needs, v.production);
+								v.divide = false;
+							}
+						
+							for(i in v){
+								if(typeof(v[i]) == 'function'){
+									delete v[i];
+								}
+							}
+							delete v.economy;
+						});
+					}
+					
+					remover($this.individuals);
+					remover($this.industries);
+					remover($this.markets);
+					remover($this.producers);
+
+					$econtick.postMessage({
+						individuals: $this.individuals,
+						industries: $this.industries,
+						markets: $this.markets,
+						producers: $this.producers,
+						needs: $this.needs,
+						supply: $this.supply
+					});
+					
+					$econtick.addEventListener('message', function(e) {
+						$this.individuals = e.data.individuals;
+						$this.industries = e.data.industries;
+						$this.markets = e.data.markets;
+						$this.producers = e.data.producers;
+						$this.needs = e.data.needs;
+						$this.supply = e.data.supply;
+					}, false);
+				}
+				else{
+					process();
+				}				
+					
+		},
+		range: 10,
 		individuals: [],
 		industries: [],
 		markets: [],
 		producers: [],
-		labor: [],
-		commodity: [],
-		equipment: [],
-		consumer: [],
+		supply:{
+			labor: [0],
+			commodity: [0],
+			equipment: [0],
+			consumer: [0]
+		},
 		needs: {
 			labor: [0],
 			commodity: [0],
 			equipment: [0],
 			consumer: [0]
 		},
+		lastrange: function(){
+		
+		return this.data.health.slice(Math.max(this.data.health.length - this.range, 0));
+		},
+		addDataPoint: function(){
+		
+			//this.health.push(this.size * (this.size / (this.inWant || 1)));
+			this.data.health.push(this.size - (this.size * ((this.inWant ||1) / (this.size || 1))));
+		
+		},
 		addProducts: function(type, index){
 		
 			switch(type){
 				case 'labor':
-				this.labor[index] = (this.labor[index] || 0) + 1;
+				this.supply.labor[index] = (this.supply.labor[index] || 0) + 1;
 				break;
 				case 'commodity':
-				this.commodity[index] = (this.commodity[index] || 0) + 1;
+				this.supply.commodity[index] = (this.supply.commodity[index] || 0) + 1;
 				break;
 				case 'equipment':
-				this.equipment[index] = (this.equipment[index] || 0) + 1;
+				this.supply.equipment[index] = (this.supply.equipment[index] || 0) + 1;
 				break;				
 				case 'consumer':
-				this.consumer[index] = (this.consumer[index] || 0) + 1;
+				this.supply.consumer[index] = (this.supply.consumer[index] || 0) + 1;
 				break;
 			}
 		
@@ -67,12 +180,14 @@ $provide.factory('economy', function factory($rootScope){
 			
 			arr.splice(arr.indexOf(prod), 1);
 			
-			if(Math.random() > $attract[prod.type]){
-				for(var i = 0; i < prod.production.length; i++){
-						this[prod.production[i].type][prod.production[i].index] --;
-				}
+			if(Math.random() < 0.4){  //Likelyhood of reinvestment
 				for(var i = 0; i < prod.needs.length; i++){
-						this[prod.needs[i].type][prod.needs[i].index] ++;
+						this[prod.needs[i].type][prod.needs[i].index] += prod.needs[i].amount ;
+				}
+				if(this.closed){ //If the economy is closed also remove the investment capital
+					for(var i = 0; i < prod.production.length; i++){
+							this[prod.production[i].type][prod.production[i].index] -= prod.production[i].amount ;
+					}
 				}
 			}
 			
@@ -100,7 +215,6 @@ $provide.factory('economy', function factory($rootScope){
 						this.currentRest = 0;
 						this.economy.addProduction(this.type, this.needs, this.production);
 					}
-						return true;
 				}
 			
 				this.currentRest += this.purchasePower;
@@ -115,23 +229,19 @@ $provide.factory('economy', function factory($rootScope){
 						this.produce();
 						this.currentRest = 0;
 						this.purchasePower += $powerStep * 1.1;						
-						return true;
 					}else{
 						this.inWant = true;
 						this.purchasePower -= $powerStep;
 						this.currentRest = 0;
-						return false;
 					}
 				}
-				
-				return false;
 			}
 			
 			transfer.requestneeds = function(){
 			
 				function needavailable(v, economy, type){
 				
-					if(economy[v.type][v.index] > 0){
+					if(economy.supply[v.type][v.index] > 0){
 						economy.needs[v.type][v.index] = Math.max((economy.needs[v.type][v.index] || 0) - 1, 0);
 						return true;
 					}else{
@@ -150,21 +260,19 @@ $provide.factory('economy', function factory($rootScope){
 				}
 				
 				for(var i = 0; i < this.needs.length; i++){
-					this.economy[this.needs[i].type][this.needs[i].index] -= 1;
+					this.economy.supply[this.needs[i].type][this.needs[i].index] -= 1;
 				}
 				
 				return true;
-
 			}
 			
-			transfer.produce = function(){
-				for(var i = 0; i < this.production.length; i++){
-					for(var j = 0; j < this.production[i].amount; j++){
-						this.economy.addProducts(this.production[i].type, this.production[i].index);
-					}
+		transfer.produce = function(){
+			for(var i = 0; i < this.production.length; i++){
+				for(var j = 0; j < this.production[i].amount; j++){
+					this.economy.addProducts(this.production[i].type, this.production[i].index);
 				}
-
 			}
+		}
 			
 			switch(type){
 			case 'individual':
@@ -214,9 +322,27 @@ $provide.factory('economy', function factory($rootScope){
 	
 		return {
 			time: 200,
+			min: 1,
+			max: 500,
+			datapoint: 0,
+			datapointdelta: 50,
+			progress: 0,
 			tick: function(){
 				try{
-					$rootScope.$broadcast('clocktick');
+					var attr = {
+						datapoint: false
+					};
+				
+					if(this.datapoint <= 0){
+						attr.datapoint = true;
+						this.datapoint = this.datapointdelta;
+					}
+					
+					this.datapoint --;
+					
+					this.progress = (((this.datapoint / this.datapointdelta)*10) % 10) | 0;
+				
+					$rootScope.$broadcast('clocktick', attr);
 				}catch(e){
 
 				}
@@ -238,7 +364,10 @@ $provide.factory('economy', function factory($rootScope){
 			change: function(){
 				if(this.interval){
 					clearInterval(this.interval);
-					this.interval = setInterval(this.tick, this.time);
+					var $this = this;
+					this.interval = setInterval(function(){
+						$this.tick();
+					}, this.max -this.time);
 				}			
 			},
 			start: function(){
@@ -246,51 +375,43 @@ $provide.factory('economy', function factory($rootScope){
 					clearInterval(this.interval);
 					delete this.interval;
 				}
-				this.interval = setInterval(this.tick, this.time);
-			}
+					var $this = this;
+					this.interval = setInterval(function(){
+						$this.tick();
+					}, this.max -this.time);			}
 		}
 	
 	});
 	
-	$compileProvider.directive('economy', ['economy', 'worldclock', function factory(economy, worldclock){
+	$compileProvider.directive('local', ['economy',  function factory(economy){
 	return{
-		restrict: 'C',
+		restrict: 'E',
 		scope: true,
+		templateUrl: $templatePath + "local.html",
 		link: function($scope, $element){
-			$scope.worldclock = worldclock;
 			$scope.economy = angular.copy(economy);
 			$scope.individuals = 1;
 			$scope.industry = 1;
 			$scope.market = 1;
 			$scope.produce = 1;
 			
-			$scope.$on('clocktick', function(){
+			$scope.$on('clocktick', function(e, data){
+
+				$scope.economy.runtick();
 				
-					var whole = [].concat($scope.economy.individuals, $scope.economy.industries, $scope.economy.markets, $scope.economy.producers)
-					for(var i = 0; i < whole.length; i++){
-						whole[i].onTick();
-					}
+				if(data.datapoint){
+					$scope.economy.addDataPoint();
+				}
 				
-					
-					function sorter(a, b){
-						return b.purchasePower - a.purchasePower;
-					
-					}
-					
-					$scope.economy.individuals.sort(sorter);
-					$scope.economy.industries.sort(sorter);
-					$scope.economy.markets.sort(sorter);
-					$scope.economy.producers.sort(sorter);
-					
-					$scope.$apply();
+				$scope.$apply();
 
 			});
 			
 			$scope.generateActors = function(){
-				$scope.economy.labor = [5];
-				$scope.economy.commodity = [5];
-				$scope.economy.equipment = [5];
-				$scope.economy.consumer = [5];
+				$scope.economy.supply.labor = [5];
+				$scope.economy.supply.commodity = [5];
+				$scope.economy.supply.equipment = [5];
+				$scope.economy.supply.consumer = [5];
 				$scope.economy.individuals = [];
 				$scope.economy.industries = [];
 				$scope.economy.markets = [];
@@ -319,6 +440,8 @@ $provide.factory('economy', function factory($rootScope){
 					$scope.economy.generateProducer();
 				}
 			}
+			
+			$scope.generateActors();
 		}
 	}
 }]);
@@ -336,7 +459,7 @@ $compileProvider.directive('localprod', ['worldclock', function(worldclock){
 			restrict: 'E',
 			replace: true,
 			scope: true,
-			template: ['<div class="btn btn-mini" ng-click="worldclock.toggle()"><i ng-class="icon"></i> {{ getrest() }}','</div>'].join(''),
+			template: ['<div class="btn btn-mini"><i ng-class="icon"></i> {{ getrest() }}','</div>'].join(''),
 			controller: function($scope, $element){
 				$scope.icon = icons[$element.attr('data-type')];
 				$scope.prodClass = '';
@@ -382,8 +505,8 @@ $compileProvider.directive('good', function(){
 
 
 
-}).run(function(worldclock){
-
+}).run(function($rootScope, worldclock){
+	$rootScope.worldclock = worldclock;
 
 });
 

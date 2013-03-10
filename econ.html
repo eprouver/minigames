@@ -16,108 +16,23 @@
         <link rel="stylesheet" href="css/econ.css">
     </head>
     <body ng-app="econ">
-		
-		<div class="economy container-fluid">
-		<h1>The Market
-			<div class="btn btn-success" ng-click="generateActors(); worldclock.start()">(re)start</div>
-			<input type="range"  min="1" max="300" ng-Model="worldclock.time" ng-change="worldclock.change()"/>
-		</h1>
-		<hr/>
+		<div class="containter-fluid">
 			<div class="row-fluid">
-				<div class="span3">
-					<div class="btn-group dropup">
-						<p class="dropdown-toggle btn" data-toggle="dropdown">Industry <i class="icon-th"></i></p>
-						<p class="dropdown-menu">
-							<i class="icon-time"></i> + <i class="icon-wrench"></i> <br/>&rArr;<br/> 2<i class="icon-tint"></i> Out
-						</p>
+				<h1 class="span6">The Market</h1>
+				<div class="span6"
+					<div ng-click="worldclock.toggle()">
+						<span class="btn" ng-show="worldclock.interval"><i class="icon-pause"></i> Pause</span>
+						<span class="btn btn-success" ng-hide="worldclock.interval"><i class="icon-play"></i> Play</span>
 					</div>
-				</div>
-				<div class="span3">
-					<div class="btn-group dropup">
-						<p class="dropdown-toggle btn" data-toggle="dropdown">Manufacturing <i class="icon-briefcase"></i></p>
-						<p class="dropdown-menu">
-							<i class="icon-time"></i> + <i class="icon-tint"></i> <br/>&rArr;<br/> <i class="icon-wrench"></i> & <i class="icon-shopping-cart"></i> Out
-						</p>
-					</div>
-				</div>
-				<div class="span3">
-					<div class="btn-group dropup">
-						<p class="dropdown-toggle btn" data-toggle="dropdown">Commercial <i class="icon-tag"></i></p>
-						<p class="dropdown-menu" data-toggle="dropdown">
-							<i class="icon-time"></i> + <i class="icon-tint"></i> <br/>&rArr;<br/> 2<i class="icon-shopping-cart"></i> Out
-						</p>
-					</div>
-				</div>
-				<div class="span3">
-					<div class="btn-group dropup">	
-						<p class="dropdown-toggle btn" data-toggle="dropdown">Housing <i class="icon-home"></i></p>
-						<p class="dropdown-menu" data-toggle="dropdown">
-							<i class="icon-shopping-cart"></i> <br/>&rArr;<br/> <i class="icon-time"></i> Out
-						</p>
-					</div>
+					<span class="pie">{{worldclock.progress}}</span>
+					<input type="range"  min="{{worldclock.min}}" max="{{worldclock.max}}" ng-Model="worldclock.time" ng-change="worldclock.change()"/>
 				</div>
 			</div>
 			<div class="row-fluid">
-				<div class="span3">				
-					<span ng-bind="economy.producers.length"></span>
-				</div>
-				<div class="span3">
-					<span ng-bind="economy.industries.length"></span>					
-				</div>
-				<div class="span3">
-					<span ng-bind="economy.markets.length"></span>
-				</div>
-				<div class="span3">		
-					<span ng-bind="economy.individuals.length"></span>
-				</div>
+				<local></local>
+				<local></local>
 			</div>
-			<div class="row-fluid bars">
-				<div class="span3 bars">
-					<localprod data-type="producer" class="onTick pie" ng-class="[prodClass,wantClass].join(' ')" ng-repeat="item in economy.producers.slice(0,20)"></localprod>
-				</div>
-				<div class="span3 bars">				
-					<localprod data-type="industry" class="onTick pie" ng-class="[prodClass,wantClass].join(' ')" ng-repeat="item in economy.industries.slice(0,20)"></localprod>
-				</div>
-				<div class="span3 bars">				
-					<localprod data-type="market" class="onTick pie" ng-class="[prodClass,wantClass].join(' ')" ng-repeat="item in economy.markets.slice(0,20)"></localprod>
-				</div>
-				<div class="span3 bars">
-					<localprod data-type="individual" class="onTick pie" ng-class="[prodClass,wantClass].join(' ')" ng-repeat="item in economy.individuals.slice(0,20)"></localprod>
-				</div>
-			</div>			
-			<hr/>
-			<div class="row-fluid">
-				<div class="span3">				
-					<good data-type="commodity" ng-repeat="item in economy.commodity"></good>
-				</div>
-				<div class="span3">
-					<good data-type="equipment" ng-repeat="item in economy.equipment"></good>
-				</div>
-				<div class="span3">
-					<good data-type="consumer" ng-repeat="item in economy.consumer"></good>
-				</div>
-				<div class="span3">		
-					<good data-type="labor" ng-repeat="item in economy.labor"></good>
-				</div>
-			</div>
-			<div class="row-fluid">
-				<div class="span3">				
-					<span ng-repeat="item in economy.needs.commodity" ng-bind="economy.needs.commodity[$index]"></span>
-					
-				</div>
-				<div class="span3">
-					<span ng-repeat="item in economy.needs.equipment" ng-bind="economy.needs.equipment[$index]"></span>					
-				</div>
-				<div class="span3">
-					<span ng-repeat="item in economy.needs.consumer" ng-bind="economy.needs.consumer[$index]"></span>
-				</div>
-				<div class="span3">		
-					<span ng-repeat="item in economy.needs.labor" ng-bind="economy.needs.labor[$index]"></span>
-				</div>
-			</div>
-		</div>		
-
-		
+		</div>
 		 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 		 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/jquery-ui.min.js"></script>
