@@ -9,8 +9,6 @@ $attract ={
 },
 $templatePath = 'js/econ/temp/';
 
-
-
 var econ = angular.module('econ', ['ng']).config(function($provide, $compileProvider){
 
 $provide.factory('economy', function factory($rootScope){
@@ -20,15 +18,12 @@ $provide.factory('economy', function factory($rootScope){
 	if(typeof(Worker)!=="undefined"){
 
 		$econtick = new Worker('js/econ/econtick.js');
-		$econtick.onmessage = function(e){
-			console.log(e);
-		};
 	}
 	else{
 	  
 	}
 
-	return {
+	var economy = {
 		//In a closed economy production releases goods back into the economy when it leaves
 		closed: false,
 		size: 0,
@@ -60,37 +55,29 @@ $provide.factory('economy', function factory($rootScope){
 					$this.markets.sort(sorter);
 					$this.producers.sort(sorter); 
 				}
-
+				
 				if(typeof(Worker)!=="undefined"){	
-					process();
-					return;
 					
-					var copy = {}
-					function remover(arr){
-						$.map(arr, function(v){
-							if(v.remove){
-								$this.removeProduction(v);
-								return;
-							}
-							
-							if(v.divide){
-								$this.addProduction(v.type, v.needs, v.production);
-								v.divide = false;
-							}
+					var whole = [].concat($this.individuals, $this.industries, $this.markets, $this.producers);
+					$this.size = whole.length;
+					$this.inWant = 0;
+					for(var i = 0; i < whole.length; i++){
+						if(whole[i].divide){
+							whole[i].divide = false;
+							this.addProduction(whole[i].type, whole[i].needs, whole[i].production);
+						}
 						
-							for(i in v){
-								if(typeof(v[i]) == 'function'){
-									delete v[i];
-								}
-							}
-							delete v.economy;
-						});
+						if(whole[i].remove){
+							this.removeProduction(whole[i]);
+						}
+						
+						if(whole[i].inWant){
+							$this.inWant++;
+						}
 					}
+					this.addProduction(this.type, this.needs, this.production);
 					
-					remover($this.individuals);
-					remover($this.industries);
-					remover($this.markets);
-					remover($this.producers);
+					try{
 
 					$econtick.postMessage({
 						individuals: $this.individuals,
@@ -98,17 +85,36 @@ $provide.factory('economy', function factory($rootScope){
 						markets: $this.markets,
 						producers: $this.producers,
 						needs: $this.needs,
+						supply: $this.supply,
+						id: $this.$id
+					});
+					}catch(e){
+						console.log(e, {
+						individuals: $this.individuals,
+						industries: $this.industries,
+						markets: $this.markets,
+						producers: $this.producers,
+						needs: $this.needs,
 						supply: $this.supply
 					});
+					}
 					
-					$econtick.addEventListener('message', function(e) {
-						$this.individuals = e.data.individuals;
-						$this.industries = e.data.industries;
-						$this.markets = e.data.markets;
-						$this.producers = e.data.producers;
-						$this.needs = e.data.needs;
-						$this.supply = e.data.supply;
-					}, false);
+					if($econtick.onmessage == null){
+						$econtick.addEventListener('message', function(e) {
+							if(e.data.id === $this.$id){
+						
+								$this.individuals = e.data.individuals;
+								$this.industries = e.data.industries;
+								$this.markets = e.data.markets;
+								$this.producers = e.data.producers;
+								$this.needs = e.data.needs;
+								$this.supply = e.data.supply;
+							}
+						}, false);
+						$econtick.onmessage = true;
+					}
+
+					
 				}
 				else{
 					process();
@@ -182,11 +188,11 @@ $provide.factory('economy', function factory($rootScope){
 			
 			if(Math.random() < 0.4){  //Likelyhood of reinvestment
 				for(var i = 0; i < prod.needs.length; i++){
-						this[prod.needs[i].type][prod.needs[i].index] += prod.needs[i].amount ;
+						this.supply[prod.needs[i].type][prod.needs[i].index] += prod.needs[i].amount ;
 				}
 				if(this.closed){ //If the economy is closed also remove the investment capital
 					for(var i = 0; i < prod.production.length; i++){
-							this[prod.production[i].type][prod.production[i].index] -= prod.production[i].amount ;
+							this.suppy[prod.production[i].type][prod.production[i].index] -= prod.production[i].amount ;
 					}
 				}
 			}
@@ -201,77 +207,80 @@ $provide.factory('economy', function factory($rootScope){
 			transfer.currentRest = 0;
 			transfer.purchasePower = Math.random()/10 + 0.1;
 			transfer.supplied = false;
-			transfer.economy = this;
 			
-			transfer.onTick = function(){
-				this.inProd = '';
-				if(this.purchasePower < 0.001){
-					this.economy.removeProduction(this);
-				}
-				
-				if(this.purchasePower > $expansion){
-					if(Math.random() < $attract[this.type]){
-						this.purchasePower = $expansion / 2;
-						this.currentRest = 0;
-						this.economy.addProduction(this.type, this.needs, this.production);
-					}
-				}
-			
-				this.currentRest += this.purchasePower;
-				
-				if(this.currentRest >= this.rest){
-				
-					this.supplied = this.requestneeds();
-				
-					if(this.supplied){
-						this.inWant = false;
-						this.inProd = true;
-						this.produce();
-						this.currentRest = 0;
-						this.purchasePower += $powerStep * 1.1;						
-					}else{
-						this.inWant = true;
-						this.purchasePower -= $powerStep;
-						this.currentRest = 0;
-					}
-				}
-			}
-			
-			transfer.requestneeds = function(){
-			
-				function needavailable(v, economy, type){
-				
-					if(economy.supply[v.type][v.index] > 0){
-						economy.needs[v.type][v.index] = Math.max((economy.needs[v.type][v.index] || 0) - 1, 0);
-						return true;
-					}else{
-						economy.needs[v.type][v.index] = (economy.needs[v.type][v.index] || 0) + 1;
-						console.log(v.type, 'needed by', type);
-						return false;
+			if(typeof(Worker)=="undefined"){
+
+				transfer.economy = this;
+				transfer.onTick = function(){
+					this.inProd = '';
+					if(this.purchasePower < 0.001){
+						this.economy.removeProduction(this);
 					}
 					
-				}
+					if(this.purchasePower > $expansion){
+						if(Math.random() < $attract[this.type]){
+							this.purchasePower = $expansion / 2;
+							this.currentRest = 0;
+							this.economy.addProduction(this.type, this.needs, this.production);
+						}
+					}
 				
-				for(var i = 0; i < this.needs.length; i++){
-					if(!needavailable(this.needs[i], this.economy, this.type)){
-						
-						return false;
+					this.currentRest += this.purchasePower;
+					
+					if(this.currentRest >= this.rest){
+					
+						this.supplied = this.requestneeds();
+					
+						if(this.supplied){
+							this.inWant = false;
+							this.inProd = true;
+							this.produce();
+							this.currentRest = 0;
+							this.purchasePower += $powerStep * 1.1;						
+						}else{
+							this.inWant = true;
+							this.purchasePower -= $powerStep;
+							this.currentRest = 0;
+						}
 					}
 				}
 				
-				for(var i = 0; i < this.needs.length; i++){
-					this.economy.supply[this.needs[i].type][this.needs[i].index] -= 1;
+				transfer.requestneeds = function(){
+				
+					function needavailable(v, economy, type){
+					
+						if(economy.supply[v.type][v.index] > 0){
+							economy.needs[v.type][v.index] = Math.max((economy.needs[v.type][v.index] || 0) - 1, 0);
+							return true;
+						}else{
+							economy.needs[v.type][v.index] = (economy.needs[v.type][v.index] || 0) + 1;
+							return false;
+						}
+						
+					}
+					
+					for(var i = 0; i < this.needs.length; i++){
+						if(!needavailable(this.needs[i], this.economy, this.type)){
+							
+							return false;
+						}
+					}
+					
+					for(var i = 0; i < this.needs.length; i++){
+						this.economy.supply[this.needs[i].type][this.needs[i].index] -= 1;
+					}
+					
+					return true;
 				}
 				
-				return true;
-			}
-			
-		transfer.produce = function(){
-			for(var i = 0; i < this.production.length; i++){
-				for(var j = 0; j < this.production[i].amount; j++){
-					this.economy.addProducts(this.production[i].type, this.production[i].index);
+			transfer.produce = function(){
+				for(var i = 0; i < this.production.length; i++){
+					for(var j = 0; j < this.production[i].amount; j++){
+						this.economy.addProducts(this.production[i].type, this.production[i].index);
+					}
 				}
 			}
+			
 		}
 			
 			switch(type){
@@ -315,6 +324,10 @@ $provide.factory('economy', function factory($rootScope){
 				[{'type': 'commodity', 'index': 0, 'amount':2}]);
 		}
 	}
+	
+	
+	$rootScope.economies.push(economy);
+	return economy;
 	
 	});
 	
@@ -390,6 +403,7 @@ $provide.factory('economy', function factory($rootScope){
 		templateUrl: $templatePath + "local.html",
 		link: function($scope, $element){
 			$scope.economy = angular.copy(economy);
+			$scope.economy.$id = $scope.$id;
 			$scope.individuals = 1;
 			$scope.industry = 1;
 			$scope.market = 1;
@@ -507,6 +521,7 @@ $compileProvider.directive('good', function(){
 
 }).run(function($rootScope, worldclock){
 	$rootScope.worldclock = worldclock;
+	$rootScope.economies = [];
 
 });
 

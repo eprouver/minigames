@@ -3,7 +3,7 @@ self.addEventListener('message', function(e) {
 	var $cycleLength = 10,
 	$expansion = 0.5,
 	$powerStep = 0.1,
-	attract ={
+	$attract ={
 		individual: 0.5 ,
 		market: 0.5,
 		producer: 0.5,
@@ -91,31 +91,31 @@ self.addEventListener('message', function(e) {
 	function produce(item){
 			for(var i = 0; i < item.production.length; i++){
 				for(var j = 0; j < item.production[i].amount; j++){
-					economy.addProducts(item.production[i].type, item.production[i].index);
+					addProducts(item.production[i].type, item.production[i].index);
 				}
 			}
 	};
 	
 	for(var i = 0; i < economy.individuals.length; i++){
-		onTick(i);
+		onTick(economy.individuals[i]);
 	}
 	for(var i = 0; i < economy.industries.length; i++){
-		onTick(i);
+		onTick(economy.industries[i]);
 	}
 	for(var i = 0; i < economy.markets.length; i++){
-		onTick(i);
+		onTick(economy.markets[i]);
 	}
 	for(var i = 0; i < economy.producers.length; i++){
-		onTick(i);
+		onTick(economy.producers[i]);
 	}
 	
-	
 	self.postMessage({
-		individuals: e.data.individuals,
-		industries: e.data.industries,
-		markets: e.data.markets,
-		producers: e.data.producers,
-		supply: e.data.supply,
-		needs: e.data.needs
+		individuals: economy.individuals,
+		industries: economy.industries,
+		markets: economy.markets,
+		producers: economy.producers,
+		supply: economy.supply,
+		needs: economy.needs,
+		id: economy.id
 	});
 }, false);
