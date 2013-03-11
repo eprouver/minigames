@@ -109,6 +109,15 @@ self.addEventListener('message', function(e) {
 		onTick(economy.producers[i]);
 	}
 	
+	function sorter(a, b){
+		return b.purchasePower - a.purchasePower;
+	};
+					
+	economy.individuals.sort(sorter);
+	economy.industries.sort(sorter);
+	economy.markets.sort(sorter);
+	economy.producers.sort(sorter); 
+	
 	self.postMessage({
 		individuals: economy.individuals,
 		industries: economy.industries,

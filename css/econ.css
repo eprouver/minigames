@@ -28,3 +28,14 @@ body{
 	font-size: 17px;
 	color: rgb(95, 95, 95);
 }
+
+path {
+	stroke: #333;
+	stroke-width: 3;
+	stroke-linecap: round;
+	fill: none;
+}
+
+.linegraph{
+	width: 463px;
+}

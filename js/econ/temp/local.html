@@ -1,5 +1,5 @@
 		<div class="economy container-fluid well">
-		<span ng-repeat="item in economy.lastrange()">{{item | number: 0}} </span>
+		<linegraph data="{{economy.viewrange}}"></linegraph>
 		<hr/>
 			<div class="row-fluid">
 				<div class="span3">
