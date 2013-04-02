@@ -208,6 +208,7 @@ $provide.factory('economy', function factory($rootScope){
 			transfer.purchasePower = Math.random()/10 + 0.1;
 			transfer.supplied = false;
 			
+			//if(true){
 			if(typeof(Worker)=="undefined"){
 
 				transfer.economy = this;
@@ -275,9 +276,7 @@ $provide.factory('economy', function factory($rootScope){
 				
 			transfer.produce = function(){
 				for(var i = 0; i < this.production.length; i++){
-					for(var j = 0; j < this.production[i].amount; j++){
-						this.economy.addProducts(this.production[i].type, this.production[i].index);
-					}
+					this.economy.supply[this.production[i].type][this.production[i].index] += this.production[i].amount;
 				}
 			}
 			
@@ -349,11 +348,12 @@ $provide.factory('economy', function factory($rootScope){
 					if(this.datapoint <= 0){
 						attr.datapoint = true;
 						this.datapoint = this.datapointdelta;
+						$rootScope.$broadcast('clocktick', attr);
 						$rootScope.$broadcast('datapoint');
+						return;
 					}
 					
 					this.datapoint --;
-					
 					this.progress = (((this.datapoint / this.datapointdelta)*10) % 10) | 0;
 				
 					$rootScope.$broadcast('clocktick', attr);
@@ -475,7 +475,7 @@ $compileProvider.directive('localprod', ['worldclock', function(worldclock){
 			restrict: 'E',
 			replace: true,
 			scope: true,
-			template: ['<div class="btn btn-mini"><i ng-class="icon"></i> {{ getrest() }}','</div>'].join(''),
+			template: ['<div class="worker">{{ getrest() }}<i ng-class="icon"></i>','</div>'].join(''),
 			controller: function($scope, $element){
 				$scope.icon = icons[$element.attr('data-type')];
 				$scope.prodClass = '';
@@ -545,38 +545,38 @@ $compileProvider.directive('linegraph', function(){
 			})
 			.y(function(d) { 
 				return 100-y(d); 
-			})
-			.interpolate('linear')
+			}).interpolate('linear');
+			
 	
 			// display the line by appending an svg:path element with the data line we created above
 			graph.append("svg:path").attr("d", line(data));
 			
 			$scope.drawgraph = function(){
 				var data = JSON.parse($element.attr('data'));
-				y.domain([0, Math.max.apply(Math, data) + 100]);
+				//y.domain([0, Math.max.apply(Math, data) + 10]);
+				y = d3.scale.linear().domain([0, Math.max.apply(Math, data) + 10]).range([5, height]);
 				graph.selectAll('path').attr("d", line(data));
 				
+
+				
 				if(data.length >= 40){
-					graph.selectAll('path').attr("transform", "translate(" + (x(1)) + ")") // set the transform to the right by x(1) pixels (6 for the scale we've set) to hide the new value
-					 // apply the new data values ... but the new value is hidden at this point off the right of the canvas
-					.transition() // start a transition to bring the new value into view
+					graph.selectAll('path').attr("transform", "translate(" + (x(1)) + ")") 
+					.transition() 
 					.ease("linear")
-					.duration(1000) // for this demo we want a continual slide so set this to the same as the setInterval amount below
-					.attr("transform", "translate(" + x(0) + ")"); // animate a slide to the left back to x(0) pixels to reveal the new value
-					}
+					.duration(1000) 
+					.attr("transform", "translate(" + x(0) + ")"); 
+
+				}
 					
 					
 			}
 			
-
 			$scope.$on('datapoint', function(){
 				$scope.drawgraph();
 			});
 		
 		}
-		
-	
-	
+
 	}
 
 });

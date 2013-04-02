@@ -1,4 +1,4 @@
-		<div class="economy container-fluid well">
+		<div class="economy container-fluid">
 		<linegraph data="{{economy.viewrange}}"></linegraph>
 		<hr/>
 			<div class="row-fluid">
@@ -50,17 +50,17 @@
 				</div>
 			</div>
 			<div class="row-fluid bars">
-				<div class="span3 bars">
-					<localprod data-type="producer" class="onTick pie" ng-class="[prodClass,wantClass].join(' ')" ng-repeat="item in economy.producers.slice(0,5)"></localprod>
+				<div class="span3 bars well">
+					<localprod data-type="producer" class="onTick pie producer" ng-class="[prodClass,wantClass].join(' ')" ng-repeat="item in economy.producers.slice(0,5)"></localprod>
 				</div>
-				<div class="span3 bars">				
-					<localprod data-type="industry" class="onTick pie" ng-class="[prodClass,wantClass].join(' ')" ng-repeat="item in economy.industries.slice(0,5)"></localprod>
+				<div class="span3 bars well">				
+					<localprod data-type="industry" class="onTick pie industry" ng-class="[prodClass,wantClass].join(' ')" ng-repeat="item in economy.industries.slice(0,5)"></localprod>
 				</div>
-				<div class="span3 bars">				
-					<localprod data-type="market" class="onTick pie" ng-class="[prodClass,wantClass].join(' ')" ng-repeat="item in economy.markets.slice(0,5)"></localprod>
+				<div class="span3 bars well">				
+					<localprod data-type="market" class="onTick pie market" ng-class="[prodClass,wantClass].join(' ')" ng-repeat="item in economy.markets.slice(0,5)"></localprod>
 				</div>
-				<div class="span3 bars">
-					<localprod data-type="individual" class="onTick pie" ng-class="[prodClass,wantClass].join(' ')" ng-repeat="item in economy.individuals.slice(0,5)"></localprod>
+				<div class="span3 bars well">
+					<localprod data-type="individual" class="onTick pie individual" ng-class="[prodClass,wantClass].join(' ')" ng-repeat="item in economy.individuals.slice(0,5)"></localprod>
 				</div>
 			</div>			
 			<hr/>

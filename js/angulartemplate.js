@@ -1,5 +1,5 @@
 
-var econ = angular.module('econ', []);
+var econ = angular.module('econ', ['ng']);
 
 econ.directive('test', function(){
 	return{

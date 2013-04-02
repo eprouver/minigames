@@ -1,0 +1,13 @@
+<div id="shredder">
+<h1>Shredder</h1>
+	<div id="shredholder" class="sortholder">
+		<div id="a_{{$index}}" class="shred" ng-repeat="shred in shredder.shreds" ng-style="{
+			background: 'url('+shredder.url + ')',
+			backgroundPosition: (-$index * 40) + 'px 0',
+			height: shredder.height + 'px'
+		}"></div>
+	
+	</div>
+	<button ng-click="scrambleElement()">Start</button>
+	{{finished}}
+</div>

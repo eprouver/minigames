@@ -11,14 +11,6 @@ body{
 	letter-spacing:0;
 }
 
-.inProd{
-	background: lime;
-}
-
-.inWant{
-	background: pink;
-}
-
 .span3{
 	text-align:center;
 }
@@ -38,4 +30,74 @@ path {
 
 .linegraph{
 	width: 463px;
+}
+
+.worker{
+    width: 25px;
+    margin: 2px;
+    float: left;
+    border: 1px solid;
+    border-radius: 2px;
+    text-align:center;
+	padding-top: 3px;
+	-webkit-transition: all 0.5s linear;
+}
+
+.labor {
+	color: #44C0DD;
+	background: #B1F0FF;
+	border-color: #62E1FF;
+}
+.commodity {
+	color: #BDDD41;
+	background: #EFFFAE;
+	border-color: #DEFF5D;
+}
+.equipment {
+	color: #DD8E41;
+	background: #FFD6AE;
+	border-color: #FFAD5D;
+}
+.consumer {
+	color: #DD41C9;
+	background: #FFAEF5;
+	border-color: #E662D6;
+}
+
+.individual {
+	color: #44C0DD;
+	background: #B1F0FF;
+	border-color: #62E1FF;
+}
+.industry {
+	color: #DD8E41;
+	background: #FFD6AE;
+	border-color: #FFAD5D;
+}
+.market {
+	color: #DD41C9;
+	background: #FFAEF5;
+	border-color: #E662D6;
+}
+.producer {
+	color: #BDDD41;
+	background: #EFFFAE;
+	border-color: #DEFF5D;
+}
+
+.inProd{
+	background: lime;
+	color: lime;
+	border-color: lime;
+}
+
+.inWant{
+	/*background: rgb(255, 118, 118);*/
+	background: #000;
+	color: white;
+}
+
+.inWant i{
+  background-image: url("../img/glyphicons-halflings-white.png");
+
 }

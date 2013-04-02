@@ -89,11 +89,9 @@ self.addEventListener('message', function(e) {
 	};
 			
 	function produce(item){
-			for(var i = 0; i < item.production.length; i++){
-				for(var j = 0; j < item.production[i].amount; j++){
-					addProducts(item.production[i].type, item.production[i].index);
-				}
-			}
+		for(var i = 0; i < item.production.length; i++){
+			economy.supply[item.production[i].type][item.production[i].index] += item.production[i].amount;
+		}
 	};
 	
 	for(var i = 0; i < economy.individuals.length; i++){
