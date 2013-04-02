@@ -1,13 +1,17 @@
 <div id="shredder">
 <h1>Shredder</h1>
+		<h2 ng-show="shredder">Evidence Points: {{shredder.points}}</h2>
+		<div>
+			<button ng-click="nextImage()">Switch to another document</button> {{anotherdoc}}
+			<br/>
+			<button ng-click="searchagain()">Load Another Batch</button> 
+		</div>	
 	<div id="shredholder" class="sortholder">
 		<div id="a_{{$index}}" class="shred" ng-repeat="shred in shredder.shreds" ng-style="{
 			background: 'url('+shredder.url + ')',
 			backgroundPosition: (-$index * 40) + 'px 0',
 			height: shredder.height + 'px'
-		}"></div>
-	
+		}"></div>	
 	</div>
-	<button ng-click="scrambleElement()">Start</button>
-	{{finished}}
+
 </div>
